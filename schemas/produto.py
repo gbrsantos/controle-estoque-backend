@@ -2,8 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 from model.produto import Produto
 
-from schemas import ComentarioSchema
-
 
 class ProdutoSchema(BaseModel):
     """ Define como um novo produto a ser inserido deve ser representado
@@ -64,7 +62,7 @@ def apresenta_produto(produto: Produto):
         "id": produto.id,
         "nome": produto.nome,
         "valor": produto.valor,
-        "total_cometarios": len(produto.comentarios),
-        "comentarios": [{"texto": c.texto} for c in produto.comentarios]
+        #"total_cometarios": len(produto.comentarios),
+        #"comentarios": [{"texto": c.texto} for c in produto.comentarios]
     }
 

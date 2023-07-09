@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 from model.estabelecimentoProduto import EstabelecimentoProduto
 
-from schemas import ComentarioSchema
 from schemas.estabelecimento import EstabelecimentoSchema
 from schemas.produto import ProdutoViewSchema
 

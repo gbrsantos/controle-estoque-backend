@@ -240,33 +240,45 @@ def add_estabelecimento_produto(body: EstabelecimentoProdutoSchema):
 
     Retorna uma representação dos produtos e comentários associados.
     """
-    estabelecimento = EstabelecimentoProduto(
-        id_estabelecimento = body.id_estabelecimento,
-        id_produto = body.id_produto)
+    estabelecimentoProduto = EstabelecimentoProduto(
+        body.estabelecimento.id,
+        body.produto.id)
     ##logger.debug(f"Adicionando produto de nome: '{estabelecimento.nome}'")
     try:
-        session = Session()
-        estabelecimentoBuscado = session.query(Estabelecimento).filter(Estabelecimento.id == body.id_estabelecimento).first()
-        print("tentando achar estabelecimento:")
-        produto = session.query(Produto).filter(Produto.id == body.id_produto).first()
-        estabelecimentoBuscado.adiciona_produto(produto)
         # criando conexão com a base
+        session = Session()
+        print(estabelecimentoProduto.estabelecimento_id)
+        estabelecimentoBuscado = session.query(Estabelecimento).filter(Estabelecimento.id == estabelecimentoProduto.estabelecimento_id).first()
+
+        produto = session.query(Produto).filter(Produto.id == estabelecimentoProduto.produto_id).first()
+        print(estabelecimentoProduto.produto_id)
+        if not (produto or estabelecimentoBuscado): 
+            error_msg = "Produto não encontrado na base :/"
+            #logger.warning(f"Erro ao buscar produto '{produto_id}', {error_msg}")
+            return {"mesage": error_msg}, 404
+        
         # adicionando produto
-        session.add(estabelecimento)
+        estabelecimentoBuscado.adiciona_produto(produto)      
+        
+        session.add(estabelecimentoProduto)
         # efetivando o camando de adição de novo item na tabela
         session.commit()
         ##logger.debug(f"Adicionado produto de nome: '{estabelecimento.nome}'")
-        return apresenta_estabelecimento(estabelecimento), 200
+        return apresenta_estabelecimento(estabelecimentoBuscado), 200
 
     except IntegrityError as e:
+        session.rollback()
         # como a duplicidade do nome é a provável razão do IntegrityError
         error_msg = "Produto de mesmo nome já salvo na base :/"
         ##logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 409
 
-    except Exception as e:
+    except Exception as e:  
+        session.rollback()      
         # caso um erro fora do previsto
         error_msg = "Não foi possível salvar novo item :/"
         print(e)
         ##logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 400
+    finally:
+        session.close()

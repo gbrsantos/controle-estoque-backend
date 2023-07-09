@@ -48,6 +48,14 @@ class EstabelecimentoViewSchema(BaseModel):
     class Config:
         orm_mode = True
 
+class EstabelecimentoViewSingleSchema(BaseModel):
+    """ Define como um produto será retornado: produto + comentários.
+    """
+    id: int = 1
+    nome: str = "Loja"
+    class Config:
+        orm_mode = True
+
 class EstabelecimentoDelSchema(BaseModel):
     """ Define como deve ser a estrutura do dado retornado após uma requisição
         de remoção.

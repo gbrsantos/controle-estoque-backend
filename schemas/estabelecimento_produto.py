@@ -2,15 +2,15 @@ from pydantic import BaseModel
 from typing import Optional, List
 from model.estabelecimentoProduto import EstabelecimentoProduto
 
-from schemas.estabelecimento import EstabelecimentoSchema
-from schemas.produto import ProdutoViewSchema
+from schemas.estabelecimento import EstabelecimentoSchema, EstabelecimentoViewSingleSchema
+from schemas import *
 
 
 class EstabelecimentoProdutoSchema(BaseModel):
     """ Define como um novo produto a ser inserido deve ser representado
     """
-    id_produto: int = None
-    id_estabelecimento: int = None
+    produto: ProdutoViewSchema
+    estabelecimento: EstabelecimentoViewSingleSchema
 
 class EstabelecimentoProdutoViewSchema(BaseModel):
     """ Define como um produto será retornado: produto + comentários.

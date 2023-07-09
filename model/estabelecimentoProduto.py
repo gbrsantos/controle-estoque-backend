@@ -21,7 +21,11 @@ class EstabelecimentoProduto(Base):
             data_insercao: data de quando o comentário foi feito ou inserido
                            à base
         """
-        self.id_produto = id_produto
-        self.id_estabelecimento = id_estabelecimento
+        self.produto_id = id_produto
+        self.estabelecimento_id = id_estabelecimento
         if data_insercao:
             self.data_insercao = data_insercao
+
+    
+    def __str__(self):
+        return '{} {}'.format(self.produto_id, self.estabelecimento_id)        

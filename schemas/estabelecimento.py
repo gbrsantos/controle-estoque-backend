@@ -35,18 +35,18 @@ def apresenta_estabelecimentos(estabelecimentos: List[Estabelecimento]):
             "nome": estabelecimento.nome
         })
 
-    return {"estebelecimentos": result}
+    return {"estabelecimentos": result}
 
 
 class EstabelecimentoViewSchema(BaseModel):
     """ Define como um produto será retornado: produto + comentários.
     """
     id: int = 1
-    nome: str = "Loja"
-    produtos: List[ProdutoViewSchema]
+    nome: str = "Loja"   
+    produtos: Optional[List[ProdutoViewSchema]]
 
     class Config:
-        orm_mode = True
+        orm_mode = True        
 
 class EstabelecimentoViewSingleSchema(BaseModel):
     """ Define como um produto será retornado: produto + comentários.

@@ -1,3 +1,4 @@
+from ast import List
 from flask_openapi3 import OpenAPI, Info, Tag
 from flask import redirect
 from urllib.parse import unquote
@@ -31,13 +32,13 @@ def home():
 
 @app.post('/estabelecimento', tags=[estabelecimento_tag],
           responses={"200": EstabelecimentoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
-def add_estabelecimento(form: EstabelecimentoSchema):
+def add_estabelecimento(body: EstabelecimentoSchema):
     """Adiciona um novo Estabelecimento à base de dados
 
     Retorna uma representação dos produtos e comentários associados.
     """
     estabelecimento = Estabelecimento(
-        nome=form.nome)
+        nome=body.nome)
     #logger.debug(f"Adicionando produto de nome: '{estabelecimento.nome}'")
     try:
         # criando conexão com a base
@@ -101,7 +102,7 @@ def get_estabelecimento(query: EstabelecimentoViewSchema):
         return {"mesage": error_msg}, 400
     
 @app.get('/estabelecimentos', tags=[estabelecimento_tag],
-         responses={"200": ListagemEstabelecimentosSchema, "404": ErrorSchema})
+         responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
 def get_estabelecimentos():
     """Faz a busca por um Produto a partir do id do produto
     
@@ -109,30 +110,49 @@ def get_estabelecimentos():
     """
     #logger.debug(f"Coletando dados sobre produto #{id}")
     # criando conexão com a base
-    session = Session()
-    # fazendo a busca
-    estabelecimentos = session.query(Estabelecimento).all()
+    try:
+        session = Session()
+        # fazendo a busca
+        estabelecimentos = session.query(Estabelecimento).options(joinedload(Estabelecimento.produtos)).all()
+        
+        if not estabelecimentos:
+            # se o produto não foi encontrado
+            error_msg = "Produto não encontrado na base :/"
+            #logger.warning(f"Erro ao buscar produto '{id}', {error_msg}")
+            return {"mesage": error_msg}, 404
+        else:
+            retorno :EstabelecimentoViewSchema = []
+            for estab in estabelecimentos:
+                 retorno.append(EstabelecimentoViewSchema.from_orm(estab))
+            #result = EstabelecimentoViewSchema.from_orm(estabelecimentos)
+            #return result.json(), 200
+            #return estabelecimentos
+            # retorna a representação de produto
+            return apresenta_estabelecimentos(estabelecimentos)
+    except IntegrityError as e:
+        # como a duplicidade do nome é a provável razão do IntegrityError
+        error_msg = "Produto de mesmo nome já salvo na base :/"
+        #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        return {"mesage": error_msg}, 409
 
-    if not estabelecimentos:
-        # se o produto não foi encontrado
-        error_msg = "Produto não encontrado na base :/"
-        #logger.warning(f"Erro ao buscar produto '{id}', {error_msg}")
-        return {"mesage": error_msg}, 404
-    else:
-        # retorna a representação de produto
-        return apresenta_estabelecimentos(estabelecimentos), 200    
+    except Exception as e:
+        # caso um erro fora do previsto
+        error_msg = "Não foi possível salvar novo item :/"
+        print(e)
+        #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        return {"mesage": error_msg}, 400  
 
 
 @app.post('/produto', tags=[produto_tag],
           responses={"200": ProdutoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
-def add_produto(form: ProdutoSchema):
+def add_produto(body: ProdutoSchema):
     """Adiciona um novo Produto à base de dados
 
     Retorna uma representação dos produtos e comentários associados.
     """
     produto = Produto(
-        nome=form.nome,
-        valor=form.valor)
+        nome=body.nome,
+        valor=body.valor)
     #logger.debug(f"Adicionando produto de nome: '{produto.nome}'")
     try:
         # criando conexão com a base

@@ -34,12 +34,11 @@ def home():
           responses={"200": EstabelecimentoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
 def add_estabelecimento(body: EstabelecimentoSchema):
     """Adiciona um novo Estabelecimento à base de dados
-
-    Retorna uma representação dos produtos e comentários associados.
+    Retorna uma representação dos estabelecimento e produtos associados.
     """
     estabelecimento = Estabelecimento(
         nome=body.nome)
-    #logger.debug(f"Adicionando produto de nome: '{estabelecimento.nome}'")
+    #logger.debug(f"Adicionando estabelecimento de nome: '{estabelecimento.nome}'")
     try:
         # criando conexão com a base
         session = Session()
@@ -52,144 +51,136 @@ def add_estabelecimento(body: EstabelecimentoSchema):
 
     except IntegrityError as e:
         # como a duplicidade do nome é a provável razão do IntegrityError
-        error_msg = "Produto de mesmo nome já salvo na base :/"
-        #logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
+        error_msg = "Estabelecimento de mesmo nome já salvo na base :/"
+        #logger.warning(f"Erro ao adicionar estabelecimento '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 409
 
     except Exception as e:
+        #faz o rollback da transação
+        session.rollback()
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
-        #logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
+        error_msg = "Um erro não identificado ocorreu :/"
+        #logger.warning(f"Erro ao adicionar estabelecimento '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 400
+    finally:
+        session.close()
 
 @app.delete('/estabelecimento', tags=[estabelecimento_tag],
          responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
 def delete_estabelecimento(query: EstabelecimentoViewSchema):
-    """Faz a busca por um Produto a partir do id do produto
-    
-    Retorna uma representação dos produtos e comentários associados.
+    """Faz o delete de um Estabelecimento a partir do id do estabelecimento    
+    Retorna uma representação do estabelecimento removido.
     """
-    ##logger.debug(f"Coletando dados sobre produto #{id}")
-    # criando conexão com a base
     id_estabelecimento = query.id
     try:
+        # criando conexão com a base
         session = Session()
-        print(id_estabelecimento)
-        # fazendo a busca
+        # fazendo a busca com join produtos
+        ##logger.debug(f"Coletando dados sobre estabelecimento #{id_estabelecimento}")
         estabelecimento = session.query(Estabelecimento).options(joinedload(Estabelecimento.produtos)).\
         where(Estabelecimento.id == id_estabelecimento).one()
         if not estabelecimento:
-            # se o produto não foi encontrado
+            # se o estabelecimento não foi encontrado
             error_msg = "Produto não encontrado na base :/"
-           # #logger.warning(f"Erro ao buscar produto '{id}', {error_msg}")
+            ##logger.warning(f"Erro ao buscar estabelecimento '{id_estabelecimento}', {error_msg}")
             return {"mesage": error_msg}, 404
         else:
-            ##logger.debug(f"Produto econtrado: '{estabelecimento.nome}'")
-            # retorna a representação de produto
+            ##logger.debug(f"Estabelecimento econtrado: '{estabelecimento.nome}'")
+            # faz o delete de estabelecimento
             session.delete(estabelecimento)
             session.commit()
+            #retorna uma visao de estabelecimento como json
             result = EstabelecimentoViewSchema.from_orm(estabelecimento)
             return result.json(), 200
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
+        error_msg = "Um erro não identificado ocorreu  :/"
         print(e)
-        ##logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        ##logger.warning(f"Erro ao adicionar estabelecimento '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 400
- 
+    finally:
+        session.close()
+
 @app.get('/estabelecimento', tags=[estabelecimento_tag],
          responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
 def get_estabelecimento(query: EstabelecimentoViewSchema):
-    """Faz a busca por um Produto a partir do id do produto
-    
-    Retorna uma representação dos produtos e comentários associados.
-    """
-    ##logger.debug(f"Coletando dados sobre produto #{id}")
-    # criando conexão com a base
+    """Faz a busca por um Estabelecimento a partir do id do produto
+    Retorna uma representação do estabelecimento e produtos associados.
+    """    
     id_estabelecimento = query.id
-    print(id_estabelecimento)
     try:
+        # criando conexão com a base
         session = Session()
         # fazendo a busca
+        ##logger.debug(f"Coletando dados sobre estabelecimento #{id}")
         estabelecimento = session.query(Estabelecimento).options(joinedload(Estabelecimento.produtos)).\
         where(Estabelecimento.id == id_estabelecimento).one()
         if not estabelecimento:
-            # se o produto não foi encontrado
+            # se o estabelecimento não foi encontrado
             error_msg = "Produto não encontrado na base :/"
-           # #logger.warning(f"Erro ao buscar produto '{id}', {error_msg}")
+           # #logger.warning(f"Erro ao buscar estabelecimento '{id_estabelecimento}', {error_msg}")
             return {"mesage": error_msg}, 404
         else:
-            ##logger.debug(f"Produto econtrado: '{estabelecimento.nome}'")
-            # retorna a representação de produto
+            ##logger.debug(f"Estabelecimento econtrado: '{estabelecimento.nome}'")
+            # retorna a representação de estabelecimento em json
             result = EstabelecimentoViewSchema.from_orm(estabelecimento)
             return result.json(), 200
-    except IntegrityError as e:
-        # como a duplicidade do nome é a provável razão do IntegrityError
-        error_msg = "Produto de mesmo nome já salvo na base :/"
-        ##logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
-        return {"mesage": error_msg}, 409
 
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
+        #faz o rollback da transação
+        session.rollback()
+        error_msg = "Um erro não identificado ocorreu :/"
         print(e)
         ##logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
         return {"mesage": error_msg}, 400
-    
+    finally:
+        session.close()
+
 @app.get('/estabelecimentos', tags=[estabelecimento_tag],
-         responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
+         responses={"200": ListagemEstabelecimentosSchema, "404": ErrorSchema})
 def get_estabelecimentos():
-    """Faz a busca por um Produto a partir do id do produto
-    
-    Retorna uma representação dos produtos e comentários associados.
-    """
-    #logger.debug(f"Coletando dados sobre produto #{id}")
-    # criando conexão com a base
+    """Faz a busca de todos os estabelecimentos    
+    Retorna uma representação dos estabelecimentos.
+    """    
     try:
+        #logger.debug(f"Coletando dados sobre produto #{id}")
+        # criando conexão com a base
         session = Session()
         # fazendo a busca
         estabelecimentos = session.query(Estabelecimento).options(joinedload(Estabelecimento.produtos)).all()
-        
-        if not estabelecimentos:
-            # se o produto não foi encontrado
-            error_msg = "Produto não encontrado na base :/"
-            #logger.warning(f"Erro ao buscar produto '{id}', {error_msg}")
-            return {"mesage": error_msg}, 404
-        else:
-            retorno :EstabelecimentoViewSchema = []
-            for estab in estabelecimentos:
-                 retorno.append(EstabelecimentoViewSchema.from_orm(estab))
-            #result = EstabelecimentoViewSchema.from_orm(estabelecimentos)
-            #return result.json(), 200
-            #return estabelecimentos
-            # retorna a representação de produto
-            return apresenta_estabelecimentos(estabelecimentos)
-    except IntegrityError as e:
-        # como a duplicidade do nome é a provável razão do IntegrityError
-        error_msg = "Produto de mesmo nome já salvo na base :/"
-        #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
-        return {"mesage": error_msg}, 409
 
+        # retorna a representação de estabelecimentos
+        retorno :EstabelecimentoViewSchema = []
+        for estab in estabelecimentos:
+                retorno.append(EstabelecimentoViewSchema.from_orm(estab))    
+       
+        return apresenta_estabelecimentos(estabelecimentos)
+  
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
+        #faz o rollback da transação
+        session.rollback()
+        error_msg = "Um erro não identificado ocorreu  :/"
         print(e)
         #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
         return {"mesage": error_msg}, 400  
-
+    finally:
+        session.close()
 
 @app.post('/produto', tags=[produto_tag],
           responses={"200": ProdutoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
 def add_produto(body: ProdutoSchema):
     """Adiciona um novo Produto à base de dados
 
-    Retorna uma representação dos produtos e comentários associados.
+    Retorna uma representação dos produtos.
     """
     produto = Produto(
         nome=body.nome,
         valor=body.valor)
-    #logger.debug(f"Adicionando produto de nome: '{produto.nome}'")
+    
     try:
+        #logger.debug(f"Adicionando produto de nome: '{produto.nome}'")
         # criando conexão com a base
         session = Session()
         # adicionando produto
@@ -207,11 +198,14 @@ def add_produto(body: ProdutoSchema):
 
     except Exception as e:
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
+        #faz o rollback da transação
+        session.rollback()
+        error_msg = "Um erro não identificado ocorreu  :/"
         print(e)
         #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
         return {"mesage": error_msg}, 400
-
+    finally:
+        session.close()
 
 @app.get('/produtos', tags=[produto_tag],
          responses={"200": ListagemProdutosSchema, "404": ErrorSchema})
@@ -220,21 +214,31 @@ def get_produtos():
 
     Retorna uma representação da listagem de produtos.
     """
+    try:
     #logger.debug(f"Coletando produtos ")
     # criando conexão com a base
-    session = Session()
-    # fazendo a busca
-    produtos = session.query(Produto).all()
+        session = Session()
+        # fazendo a busca
+        produtos = session.query(Produto).all()
 
-    if not produtos:
-        # se não há produtos cadastrados
-        return {"produtos": []}, 200
-    else:
-        #logger.debug(f"%d rodutos econtrados" % len(produtos))
-        # retorna a representação de produto
-        print(produtos)
-        return apresenta_produtos(produtos), 200
-
+        if not produtos:
+            # se não há produtos cadastrados
+            return {"produtos": []}, 200
+        else:
+            #logger.debug(f"%d rodutos econtrados" % len(produtos))
+            # retorna a representação de produto
+            print(produtos)
+            return apresenta_produtos(produtos), 200
+    except Exception as e:
+        #faz o rollback da transação
+        session.rollback()
+        # caso um erro fora do previsto
+        error_msg = "Um erro não identificado ocorreu :/"
+        print(e)
+        #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        return {"mesage": error_msg}, 400       
+    finally:
+        session.close()
 
 @app.get('/produto', tags=[produto_tag],
          responses={"200": ProdutoViewSchema, "404": ErrorSchema})
@@ -243,23 +247,32 @@ def get_produto(query: ProdutoBuscaSchema):
 
     Retorna uma representação dos produtos e comentários associados.
     """
-    produto_id = query.id
-    #logger.debug(f"Coletando dados sobre produto #{produto_id}")
-    # criando conexão com a base
-    session = Session()
-    # fazendo a busca
-    produto = session.query(Produto).filter(Produto.id == produto_id).first()
+    try:
 
-    if not produto:
-        # se o produto não foi encontrado
-        error_msg = "Produto não encontrado na base :/"
-        #logger.warning(f"Erro ao buscar produto '{produto_id}', {error_msg}")
-        return {"mesage": error_msg}, 404
-    else:
-        #logger.debug(f"Produto econtrado: '{produto.nome}'")
-        # retorna a representação de produto
-        return apresenta_produto(produto), 200
+        produto_id = query.id
+        #logger.debug(f"Coletando dados sobre produto #{produto_id}")
+        # criando conexão com a base
+        session = Session()
+        # fazendo a busca
+        produto = session.query(Produto).filter(Produto.id == produto_id).first()
 
+        if not produto:
+            # se o produto não foi encontrado
+            error_msg = "Produto não encontrado na base :/"
+            #logger.warning(f"Erro ao buscar produto '{produto_id}', {error_msg}")
+            return {"mesage": error_msg}, 404
+        else:
+            #logger.debug(f"Produto econtrado: '{produto.nome}'")
+            # retorna a representação de produto
+            return apresenta_produto(produto), 200
+    except Exception as e:
+        # caso um erro fora do previsto
+        error_msg = "Um erro não identificado ocorreu  :/"
+        print(e)
+        #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        return {"mesage": error_msg}, 400
+    finally:
+        session.close()
 
 @app.delete('/produto', tags=[produto_tag],
             responses={"200": ProdutoDelSchema, "404": ErrorSchema})
@@ -268,32 +281,43 @@ def del_produto(query: ProdutoBuscaSchema):
 
     Retorna uma mensagem de confirmação da remoção.
     """
-    produto_nome = unquote(unquote(query.nome))
-    print(produto_nome)
-    #logger.debug(f"Deletando dados sobre produto #{produto_nome}")
-    # criando conexão com a base
-    session = Session()
-    # fazendo a remoção
-    count = session.query(Produto).filter(Produto.nome == produto_nome).delete()
-    session.commit()
+    try:
+        produto_nome = unquote(unquote(query.nome))
+        print(produto_nome)
+        #logger.debug(f"Deletando dados sobre produto #{produto_nome}")
+        # criando conexão com a base
+        session = Session()
+        # fazendo a remoção
+        count = session.query(Produto).filter(Produto.nome == produto_nome).delete()
+        session.commit()
 
-    if count:
-        # retorna a representação da mensagem de confirmação
-        #logger.debug(f"Deletado produto #{produto_nome}")
-        return {"mesage": "Produto removido", "id": produto_nome}
-    else:
-        # se o produto não foi encontrado
-        error_msg = "Produto não encontrado na base :/"
-        #logger.warning(f"Erro ao deletar produto #'{produto_nome}', {error_msg}")
-        return {"mesage": error_msg}, 404
-
+        if count:
+            # retorna a representação da mensagem de confirmação
+            #logger.debug(f"Deletado produto #{produto_nome}")
+            return {"mesage": "Produto removido", "id": produto_nome}
+        else:
+            # se o produto não foi encontrado
+            error_msg = "Produto não encontrado na base :/"
+            #logger.warning(f"Erro ao deletar produto #'{produto_nome}', {error_msg}")
+            return {"mesage": error_msg}, 404
+        
+    except Exception as e:
+        #faz o rollback da transação
+        session.rollback()
+        # caso um erro fora do previsto
+        error_msg = "Um erro não identificado ocorreu :/"
+        print(e)
+        #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        return {"mesage": error_msg}, 400    
+    finally:
+        session.close()
 
 @app.post('/estabelecimento-produto', tags=[estabelecimento_produto_tag],
-          responses={"200": EstabelecimentoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
+          responses={"200": EstabelecimentoProdutoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
 def add_estabelecimento_produto(body: EstabelecimentoProdutoSchema):
-    """Adiciona um novo Estabelecimento à base de dados
+    """Adiciona um novo Estabelecimento Produto à base de dados
 
-    Retorna uma representação dos produtos e comentários associados.
+    Retorna uma representação do estabelecimento produto.
     """
     estabelecimentoProduto = EstabelecimentoProduto(
         body.estabelecimento.id,
@@ -302,18 +326,14 @@ def add_estabelecimento_produto(body: EstabelecimentoProdutoSchema):
     try:
         # criando conexão com a base
         session = Session()
-        print(estabelecimentoProduto.estabelecimento_id)
+        #faz a busca do estabelecimento
         estabelecimentoBuscado = session.query(Estabelecimento).filter(Estabelecimento.id == estabelecimentoProduto.estabelecimento_id).first()
-
+        #faz a busca do produto
         produto = session.query(Produto).filter(Produto.id == estabelecimentoProduto.produto_id).first()
-        print(estabelecimentoProduto.produto_id)
         if not (produto or estabelecimentoBuscado): 
-            error_msg = "Produto não encontrado na base :/"
-            #logger.warning(f"Erro ao buscar produto '{produto_id}', {error_msg}")
+            error_msg = "Produto ou estabelecimento não encontrado na base :/"
+            #logger.warning(f"Erro ao buscar produto ou estabelecimento, {error_msg}")
             return {"mesage": error_msg}, 404
-        
-        # adicionando produto
-        estabelecimentoBuscado.adiciona_produto(produto)      
         
         session.add(estabelecimentoProduto)
         # efetivando o camando de adição de novo item na tabela
@@ -321,17 +341,11 @@ def add_estabelecimento_produto(body: EstabelecimentoProdutoSchema):
         ##logger.debug(f"Adicionado produto de nome: '{estabelecimento.nome}'")
         return apresenta_estabelecimento(estabelecimentoBuscado), 200
 
-    except IntegrityError as e:
-        session.rollback()
-        # como a duplicidade do nome é a provável razão do IntegrityError
-        error_msg = "Produto de mesmo nome já salvo na base :/"
-        ##logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
-        return {"mesage": error_msg}, 409
-
     except Exception as e:  
-        session.rollback()      
+        #faz o rollback da transação
+        session.rollback()  
         # caso um erro fora do previsto
-        error_msg = "Não foi possível salvar novo item :/"
+        error_msg = "Um erro não identificado ocorreu  :/"
         print(e)
         ##logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 400

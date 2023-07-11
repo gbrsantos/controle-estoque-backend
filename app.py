@@ -62,6 +62,41 @@ def add_estabelecimento(body: EstabelecimentoSchema):
         #logger.warning(f"Erro ao adicionar produto '{estabelecimento.nome}', {error_msg}")
         return {"mesage": error_msg}, 400
 
+@app.delete('/estabelecimento', tags=[estabelecimento_tag],
+         responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
+def delete_estabelecimento(query: EstabelecimentoViewSchema):
+    """Faz a busca por um Produto a partir do id do produto
+    
+    Retorna uma representação dos produtos e comentários associados.
+    """
+    ##logger.debug(f"Coletando dados sobre produto #{id}")
+    # criando conexão com a base
+    id_estabelecimento = query.id
+    try:
+        session = Session()
+        print(id_estabelecimento)
+        # fazendo a busca
+        estabelecimento = session.query(Estabelecimento).options(joinedload(Estabelecimento.produtos)).\
+        where(Estabelecimento.id == id_estabelecimento).one()
+        if not estabelecimento:
+            # se o produto não foi encontrado
+            error_msg = "Produto não encontrado na base :/"
+           # #logger.warning(f"Erro ao buscar produto '{id}', {error_msg}")
+            return {"mesage": error_msg}, 404
+        else:
+            ##logger.debug(f"Produto econtrado: '{estabelecimento.nome}'")
+            # retorna a representação de produto
+            session.delete(estabelecimento)
+            session.commit()
+            result = EstabelecimentoViewSchema.from_orm(estabelecimento)
+            return result.json(), 200
+    except Exception as e:
+        # caso um erro fora do previsto
+        error_msg = "Não foi possível salvar novo item :/"
+        print(e)
+        ##logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
+        return {"mesage": error_msg}, 400
+ 
 @app.get('/estabelecimento', tags=[estabelecimento_tag],
          responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
 def get_estabelecimento(query: EstabelecimentoViewSchema):

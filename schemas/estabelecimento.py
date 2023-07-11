@@ -41,8 +41,8 @@ def apresenta_estabelecimentos(estabelecimentos: List[Estabelecimento]):
 class EstabelecimentoViewSchema(BaseModel):
     """ Define como um produto será retornado: produto + comentários.
     """
-    id: int = 1
-    nome: str = "Loja"   
+    id: int = 0
+    nome: Optional[str] = ""   
     produtos: Optional[List[ProdutoViewSchema]]
 
     class Config:

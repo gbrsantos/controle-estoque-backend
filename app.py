@@ -21,7 +21,7 @@ CORS(app)
 home_tag = Tag(name="Documentação", description="Seleção de documentação: Swagger, Redoc ou RapiDoc")
 produto_tag = Tag(name="Produto", description="Adição, visualização e remoção de produtos à base")
 estabelecimento_tag = Tag(name="Estabelecimento", description="Adição, visualização e remoção de estabelecimento à base")
-estabelecimento_produto_tag = Tag(name="Estabelecimento Produto", description="Adição, visualização e remoção de estabelecimento à base")
+estabelecimento_produto_tag = Tag(name="Estabelecimento Produto", description="Adição de estabelecimento-produto à base")
 
 
 @app.get('/', tags=[home_tag])

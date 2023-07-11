@@ -38,7 +38,7 @@ def apresenta_produtos(produtos: List[Produto]):
 
 
 class ProdutoViewSchema(BaseModel):
-    """ Define como um produto será retornado: produto + comentários.
+    """ Define como um produto será retornado.
     """
     id: int = 1
     nome: str = "Banana Prata"
@@ -62,7 +62,5 @@ def apresenta_produto(produto: Produto):
         "id": produto.id,
         "nome": produto.nome,
         "valor": produto.valor,
-        #"total_cometarios": len(produto.comentarios),
-        #"comentarios": [{"texto": c.texto} for c in produto.comentarios]
     }
 

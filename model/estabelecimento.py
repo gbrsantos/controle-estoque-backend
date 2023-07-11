@@ -17,15 +17,10 @@ class Estabelecimento(Base):
     id = Column("id", Integer, primary_key=True)
     nome = Column(String(255))
     data_insercao = Column(DateTime, default=datetime.now())
+
+    # Definição do relacionamento entre o estabelecimento e produtos.
+    # Aqui está sendo definido o relacionamento many-to-many com produtos
     produtos = relationship('Produto', secondary='estabelecimento_produto', back_populates='estabelecimentos')
-
-    
-    # Definição do relacionamento entre o comentário e um produto.
-    # Aqui está sendo definido a coluna 'produto' que vai guardar
-    # a referencia ao produto, a chave estrangeira que relaciona
-    # um produto ao comentário.
-
-    #produto = Column(Integer, ForeignKey("produto.pk_produto"), nullable=False)
     
 
     def __init__(self, nome:str, data_insercao:Union[DateTime, None] = None):
@@ -33,8 +28,8 @@ class Estabelecimento(Base):
         Cria um Estabelecimento
 
         Arguments:
-            texto: o texto de um comentário.
-            data_insercao: data de quando o comentário foi feito ou inserido
+            nome: o nome do estabelecimento.
+            data_insercao: data de quando o estabelecimento foi feito ou inserido
                            à base
         """
         self.nome = nome
@@ -45,7 +40,7 @@ class Estabelecimento(Base):
         return '{} {}'.format(self.id, self.nome)
     
     def adiciona_produto(self, produto: Produto):
-        """ Adiciona um novo comentário ao Produto
+        """ Adiciona um novo produto ao Estabelecimento
         """
         self.produtos.append(produto)
 

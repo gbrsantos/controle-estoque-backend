@@ -14,11 +14,12 @@ class EstabelecimentoProduto(Base):
 
     def __init__(self, id_produto:int, id_estabelecimento:int, data_insercao:Union[DateTime, None] = None):
         """
-        Cria um Estabelecimento
+        Cria um EstabelecimentoProduto
 
         Arguments:
-            texto: o texto de um comentário.
-            data_insercao: data de quando o comentário foi feito ou inserido
+            produto_id: foreing key de produto.
+            estabelecimento_id: foreing key de estabelecimento.
+            data_insercao: data de quando o EstabelecimentoProduto foi feito ou inserido
                            à base
         """
         self.produto_id = id_produto
@@ -26,6 +27,6 @@ class EstabelecimentoProduto(Base):
         if data_insercao:
             self.data_insercao = data_insercao
 
-    
-    def __str__(self):
+    #Define como será o retorno do objeto formatado para string    
+    def __str__(self):        
         return '{} {}'.format(self.produto_id, self.estabelecimento_id)        

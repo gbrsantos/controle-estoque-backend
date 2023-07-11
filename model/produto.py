@@ -14,12 +14,10 @@ class Produto(Base):
     valor = Column(Float)
     data_insercao = Column(DateTime, default=datetime.now())
 
-    # Definição do relacionamento entre o produto e o comentário.
-    # Essa relação é implicita, não está salva na tabela 'produto',
-    # mas aqui estou deixando para SQLAlchemy a responsabilidade
-    # de reconstruir esse relacionamento.
-
+    # Definição do relacionamento entre o produto e estabelecimentos.
+    # Aqui está sendo definido o relacionamento many-to-many com estabelecimentos
     estabelecimentos = relationship('Estabelecimento', secondary='estabelecimento_produto', back_populates='produtos')
+
     def __init__(self, nome:str, valor:float,
                  data_insercao:Union[DateTime, None] = None):
         """
@@ -27,7 +25,6 @@ class Produto(Base):
 
         Arguments:
             nome: nome do produto.
-            quantidade: quantidade que se espera comprar daquele produto
             valor: valor esperado para o produto
             data_insercao: data de quando o produto foi inserido à base
         """
@@ -38,8 +35,4 @@ class Produto(Base):
         if data_insercao:
             self.data_insercao = data_insercao
 
-    # def adiciona_comentario(self, comentario:Comentario):
-    #     """ Adiciona um novo comentário ao Produto
-    #     """
-    #     self.comentarios.append(comentario)
 

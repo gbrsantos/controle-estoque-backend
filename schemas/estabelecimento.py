@@ -6,40 +6,26 @@ from schemas.produto import ProdutoViewSchema
 
 
 class EstabelecimentoSchema(BaseModel):
-    """ Define como um novo produto a ser inserido deve ser representado
+    """ Define como um novo estabelecimento a ser inserido deve ser representado
     """
     nome: str = "Loja"
 
 
 class EstabelecimentoBuscaSchema(BaseModel):
     """ Define como deve ser a estrutura que representa a busca. Que será
-        feita apenas com base no nome do produto.
+        feita apenas com base no id do estabelecimento.
     """
     id: int = 1
 
 
 class ListagemEstabelecimentosSchema(BaseModel):
-    """ Define como uma listagem de produtos será retornada.
+    """ Define como uma listagem de estabelecimento será retornada.
     """
     estabelecimentos:List[EstabelecimentoSchema]
 
 
-def apresenta_estabelecimentos(estabelecimentos: List[Estabelecimento]):
-    """ Retorna uma representação do produto seguindo o schema definido em
-        ProdutoViewSchema.
-    """
-    result = []
-    for estabelecimento in estabelecimentos: 
-        result.append({
-            "id": estabelecimento.id,
-            "nome": estabelecimento.nome
-        })
-
-    return {"estabelecimentos": result}
-
-
 class EstabelecimentoViewSchema(BaseModel):
-    """ Define como um produto será retornado: produto + comentários.
+    """ Define como um estabelecimento será retornado: estabelecimento + produtos.
     """
     id: int = 0
     nome: Optional[str] = ""   
@@ -49,7 +35,7 @@ class EstabelecimentoViewSchema(BaseModel):
         orm_mode = True        
 
 class EstabelecimentoViewSingleSchema(BaseModel):
-    """ Define como um produto será retornado: produto + comentários.
+    """ Define como um estabelecimento será retornado: id + nome.
     """
     id: int = 1
     nome: str = "Loja"
@@ -64,13 +50,24 @@ class EstabelecimentoDelSchema(BaseModel):
     nome: str
     
 def apresenta_estabelecimento(estabelecimento: Estabelecimento):
-    """ Retorna uma representação do produto seguindo o schema definido em
-        ProdutoViewSchema.
+    """ Retorna uma representação do estabelecimento seguindo o schema definido em
+        EstabelecimentoViewSchema.
     """
     return {
         "id": estabelecimento.id,
         "nome": estabelecimento.nome
     }
 
-class Config:
-        orm_mode = True
+
+def apresenta_estabelecimentos(estabelecimentos: List[Estabelecimento]):
+    """ Retorna uma representação do estabelecimento seguindo o schema definido em
+        EstabelecimentoViewSchema.
+    """
+    result = []
+    for estabelecimento in estabelecimentos: 
+        result.append({
+            "id": estabelecimento.id,
+            "nome": estabelecimento.nome
+        })
+
+    return {"estabelecimentos": result}

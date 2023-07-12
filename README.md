@@ -31,3 +31,7 @@ automaticamente após uma mudança no código fonte.
 ```
 
 Abra o [http://localhost:5000/#/](http://localhost:5000/#/) no navegador para verificar o status da API em execução.
+
+-----
+# DER do projeto
+![image](https://github.com/gbrsantos/controle-estoque-backend/assets/90329176/f94ac126-0671-4a1b-b678-a66c91ccfe48)

@@ -17,12 +17,6 @@ class ProdutoBuscaSchema(BaseModel):
     nome: str = "Teste"
 
 
-class ListagemProdutosSchema(BaseModel):
-    """ Define como uma listagem de produtos será retornada.
-    """
-    produtos:List[ProdutoSchema]
-
-
 def apresenta_produtos(produtos: List[Produto]):
     """ Retorna uma representação do produto seguindo o schema definido em
         ProdutoViewSchema.
@@ -30,6 +24,7 @@ def apresenta_produtos(produtos: List[Produto]):
     result = []
     for produto in produtos:
         result.append({
+            "id": produto.id,
             "nome": produto.nome,
             "valor": produto.valor,
         })
@@ -46,6 +41,10 @@ class ProdutoViewSchema(BaseModel):
     class Config:
         orm_mode = True
 
+class ListagemProdutosSchema(BaseModel):
+    """ Define como uma listagem de produtos será retornada.
+    """
+    produtos:List[ProdutoViewSchema]
 
 class ProdutoDelSchema(BaseModel):
     """ Define como deve ser a estrutura do dado retornado após uma requisição

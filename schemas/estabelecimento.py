@@ -37,7 +37,7 @@ class EstabelecimentoViewSchema(BaseModel):
 class EstabelecimentoViewSingleSchema(BaseModel):
     """ Define como um estabelecimento será retornado: id + nome.
     """
-    id: int = 1
+    id: int
     nome: str = "Loja"
     class Config:
         orm_mode = True

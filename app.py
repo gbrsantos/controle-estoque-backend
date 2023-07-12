@@ -138,7 +138,7 @@ def get_estabelecimento(query: EstabelecimentoViewSchema):
         session.close()
 
 @app.get('/estabelecimentos', tags=[estabelecimento_tag],
-         responses={"200": ListagemEstabelecimentosSchema, "404": ErrorSchema})
+         responses={"200": EstabelecimentoViewSchema, "404": ErrorSchema})
 def get_estabelecimentos():
     """Faz a busca de todos os estabelecimentos    
     Retorna uma representação dos estabelecimentos.
@@ -151,9 +151,6 @@ def get_estabelecimentos():
         estabelecimentos = session.query(Estabelecimento).options(joinedload(Estabelecimento.produtos)).all()
 
         # retorna a representação de estabelecimentos
-        retorno :EstabelecimentoViewSchema = []
-        for estab in estabelecimentos:
-                retorno.append(EstabelecimentoViewSchema.from_orm(estab))    
        
         return apresenta_estabelecimentos(estabelecimentos)
   
@@ -193,6 +190,7 @@ def add_produto(body: ProdutoSchema):
     except IntegrityError as e:
         # como a duplicidade do nome é a provável razão do IntegrityError
         error_msg = "Produto de mesmo nome já salvo na base :/"
+        print(e)
         #logger.warning(f"Erro ao adicionar produto '{produto.nome}', {error_msg}")
         return {"mesage": error_msg}, 409
 
@@ -313,15 +311,17 @@ def del_produto(query: ProdutoBuscaSchema):
         session.close()
 
 @app.post('/estabelecimento-produto', tags=[estabelecimento_produto_tag],
-          responses={"200": EstabelecimentoProdutoViewSchema, "409": ErrorSchema, "400": ErrorSchema})
+          responses={"200": EstabelecimentoProdutoSchema, "409": ErrorSchema, "400": ErrorSchema})
 def add_estabelecimento_produto(body: EstabelecimentoProdutoSchema):
     """Adiciona um novo Estabelecimento Produto à base de dados
 
     Retorna uma representação do estabelecimento produto.
     """
+    print(body.id_estabelecimento)
+    print(body.id_produto)
     estabelecimentoProduto = EstabelecimentoProduto(
-        body.estabelecimento.id,
-        body.produto.id)
+        body.id_produto,
+        body.id_estabelecimento)
     ##logger.debug(f"Adicionando produto de nome: '{estabelecimento.nome}'")
     try:
         # criando conexão com a base
@@ -330,6 +330,7 @@ def add_estabelecimento_produto(body: EstabelecimentoProdutoSchema):
         estabelecimentoBuscado = session.query(Estabelecimento).filter(Estabelecimento.id == estabelecimentoProduto.estabelecimento_id).first()
         #faz a busca do produto
         produto = session.query(Produto).filter(Produto.id == estabelecimentoProduto.produto_id).first()
+        ##verificar se ja existe um estabelecimentoproduo com os mesmos ids
         if not (produto or estabelecimentoBuscado): 
             error_msg = "Produto ou estabelecimento não encontrado na base :/"
             #logger.warning(f"Erro ao buscar produto ou estabelecimento, {error_msg}")

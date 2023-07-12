@@ -9,14 +9,14 @@ from schemas import *
 class EstabelecimentoProdutoSchema(BaseModel):
     """ Define como um novo estabelecimento a ser inserido deve ser representado
     """
-    produto: ProdutoViewSchema
-    estabelecimento: EstabelecimentoViewSingleSchema
+    id_produto: int
+    id_estabelecimento: int
 
 class EstabelecimentoProdutoViewSchema(BaseModel):
     """ Define como um estabelecimento será retornado: estabelecimento + produto.
     """
     id: int = None
-    estabelecimento = EstabelecimentoSchema
+    id_estabelecimento = EstabelecimentoSchema
     produto = ProdutoViewSchema
 
 

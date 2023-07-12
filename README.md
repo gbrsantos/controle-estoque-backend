@@ -1,4 +1,4 @@
-# Minha API
+# Controle de Estoque
 
 Este pequeno projeto faz parte do MVP da Disciplina **Desenvolvimento Full Stack Básico** 
 
